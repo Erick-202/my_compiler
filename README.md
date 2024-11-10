@@ -24,6 +24,7 @@ git pull origin <nombre_de_la_rama><br />
 
 git add .<br /> 
 git commit -m "Descripción de los cambios"<br />
+git checkout origin <nombre_rama pe.main><br />
 git push origin <nombre_rama pe.main><br />
 
 
