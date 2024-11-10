@@ -178,14 +178,15 @@ class SymbolTable(QWidget):
         label = QLabel("Tabla de Símbolos")
         layout.addWidget(label)
         
-        self.table = QTableWidget(10, 3)  # Tabla con 10 filas y 3 columnas
-        self.table.setHorizontalHeaderLabels(["Símbolo", "Tipo", "Valor"])
+        self.table = QTableWidget(10, 4)  # Tabla con 10 filas y 3 columnas
+        self.table.setHorizontalHeaderLabels(["Símbolo", "Tipo", "Línea", "Columna"])
         
         # Agregar datos de ejemplo
         for row in range(10):
             self.table.setItem(row, 0, QTableWidgetItem(f"Simbolo{row+1}"))
             self.table.setItem(row, 1, QTableWidgetItem("Tipo"))
-            self.table.setItem(row, 2, QTableWidgetItem("Valor"))
+            self.table.setItem(row, 3, QTableWidgetItem("Linea"))
+            self.table.setItem(row, 4, QTableWidgetItem("Col"))
 
         layout.addWidget(self.table)
         self.setLayout(layout)
@@ -208,8 +209,8 @@ class IDE(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-        self.setWindowTitle("Mi IDE Personalizado con Tabla de Símbolos")
-        self.setGeometry(100, 100, 1000, 600)
+        self.setWindowTitle("IDE C+|- ")
+        self.setGeometry(100, 100, 1150, 600)
 
 def main():
     app = QApplication(sys.argv)

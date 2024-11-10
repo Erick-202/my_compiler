@@ -3,28 +3,28 @@ C+|- es en lenguaje de programacion basado en C hecho por los Estudiantes del TE
 
 
 # Librerías Requeridas:
-instalar con:   pip install <nombre libreria>
--> pyqt5
--> pyqt5-tools
--> ply
+instalar con:   pip install <nombre libreria><br />
+-> pyqt5<br />
+-> pyqt5-tools<br />
+-> ply<br />
 
 # Git Commands
 
-1.- Clonar Repositorio
+1.- Clonar Repositorio<br />
 
-git clone <URL_del_repositorio>
-cd my_compiler
+git clone <URL_del_repositorio><br />
+cd my_compiler<br />
 
 
-2.- Pull (hacer una copia local)
+2.- Pull (hacer una copia local)<br />
 
-git pull origin <nombre_de_la_rama>
+git pull origin <nombre_de_la_rama><br />
 
-3.- Push (Subir cambios)
+3.- Push (Subir cambios)<br />
 
-git add .
-git commit -m "Descripción de los cambios"
-git push origin <nombre_rama pe.main>
+git add .<br /> 
+git commit -m "Descripción de los cambios"<br />
+git push origin <nombre_rama pe.main><br />
 
 
 
