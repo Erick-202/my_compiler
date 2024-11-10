@@ -3,10 +3,12 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem, QLabel
 )
 from PyQt5.QtGui import QColor, QPainter, QTextFormat
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import Qt, QRect, QSize
+
+from a_lex import analyze
 
 #######################################################################
-###############         ANALISIS        ###############################
+###############         LEX ANALYSIS        ###############################
 #######################################################################
 
 # Clase Token
@@ -59,11 +61,12 @@ class LexicalAnalyzer:
             else:
                 return None  # Fin del código fuente
 
-
+"""
 # Clase SymbolTable
 class SymbolTable:
     def __init__(self):
         self.table = {}  # Estructura de almacenamiento para la tabla de símbolos, se puede utilizar un diccionario
+        
 
     def insert(self, symbol, symbol_type, scope):
         # Inserta un nuevo símbolo en la tabla
@@ -82,6 +85,8 @@ class SymbolTable:
 
     def __repr__(self):
         return f"SymbolTable({self.table})"
+"""
+
 
 
 
@@ -94,13 +99,25 @@ class SymbolTable:
 
 
 class CodeEditor(QPlainTextEdit):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, symbol_table, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.line_number_area = LineNumberArea(self)
+        self.symbol_table = symbol_table
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
         self.cursorPositionChanged.connect(self.highlight_current_line)
         self.update_line_number_area_width(0)
+
+        # Conecta el evento textChanged al método para analizar el código
+        self.textChanged.connect(self.analyze_text)
+
+    def analyze_text(self):
+        src = self.toPlainText()  # Obtiene el texto actual del editor
+        tokens = analyze(src)     # Llama a la función analyze y obtiene los tokens
+        self.symbol_table.update_symbols(tokens)  # Actualiza la tabla de símbolos con los tokens
+
+        #print(tokens)
+        #print("###########################################")
 
     def line_number_area_width(self):
         digits = len(str(self.blockCount()))
@@ -178,18 +195,26 @@ class SymbolTable(QWidget):
         label = QLabel("Tabla de Símbolos")
         layout.addWidget(label)
         
-        self.table = QTableWidget(10, 4)  # Tabla con 10 filas y 3 columnas
+        # Crear la tabla con 4 columnas
+        self.table = QTableWidget(0, 4)  # Inicialmente sin filas
         self.table.setHorizontalHeaderLabels(["Símbolo", "Tipo", "Línea", "Columna"])
         
-        # Agregar datos de ejemplo
-        for row in range(10):
-            self.table.setItem(row, 0, QTableWidgetItem(f"Simbolo{row+1}"))
-            self.table.setItem(row, 1, QTableWidgetItem("Tipo"))
-            self.table.setItem(row, 3, QTableWidgetItem("Linea"))
-            self.table.setItem(row, 4, QTableWidgetItem("Col"))
-
         layout.addWidget(self.table)
         self.setLayout(layout)
+
+    def update_symbols(self, tokens):
+        # Borrar los datos anteriores
+        self.table.setRowCount(0)
+        
+        # Insertar nuevos datos
+        for token in tokens:
+            symbol, token_type, line, column = token
+            row_position = self.table.rowCount()
+            self.table.insertRow(row_position)
+            self.table.setItem(row_position, 0, QTableWidgetItem(str(symbol)))
+            self.table.setItem(row_position, 1, QTableWidgetItem(token_type))
+            self.table.setItem(row_position, 2, QTableWidgetItem(str(line)))
+            self.table.setItem(row_position, 3, QTableWidgetItem(str(column)))
 
 class IDE(QMainWindow):
     def __init__(self):
@@ -197,8 +222,9 @@ class IDE(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.editor = CodeEditor()
         self.symbol_table = SymbolTable()
+        self.editor = CodeEditor(self.symbol_table)
+        
 
         # Layout para dividir el editor de código y la tabla de símbolos
         layout = QHBoxLayout()
