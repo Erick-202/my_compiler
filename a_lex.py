@@ -76,15 +76,17 @@ def t_IDENTIFIER(t):
     t.type = reserved.get(t.value, 'IDENTIFIER')  # Verificar si es palabra reservada
     return t
 
+def t_FLOAT_LITERAL(t):
+    r'\d+\.\d+'
+    t.value = float(t.value)
+    return t
+
 def t_INT_LITERAL(t):
     r'\d+'
     t.value = int(t.value)
     return t
 
-def t_FLOAT_LITERAL(t):
-    r'\d+\.\d+'
-    t.value = float(t.value)
-    return t
+
 
 def t_STRING_LITERAL(t):
     r'\"([^\\\n]|(\\.))*?\"'
