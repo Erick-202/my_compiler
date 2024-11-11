@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem, QLabel
+    QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem, QLabel, QPushButton
 )
 from PyQt5.QtGui import QColor, QPainter, QTextFormat
 from PyQt5.QtCore import Qt, QRect, QSize
@@ -109,7 +109,7 @@ class CodeEditor(QPlainTextEdit):
         self.update_line_number_area_width(0)
 
         # Conecta el evento textChanged al método para analizar el código
-        self.textChanged.connect(self.analyze_text)
+        #self.textChanged.connect(self.analyze_text)
 
     def analyze_text(self):
         src = self.toPlainText()  # Obtiene el texto actual del editor
@@ -166,8 +166,7 @@ class CodeEditor(QPlainTextEdit):
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
                 painter.setPen(Qt.black)
-                painter.drawText(0, top, self.line_number_area.width(), self.fontMetrics().height(),
-                                 Qt.AlignRight, number)
+                painter.drawText(0, int(top), self.line_number_area.width(), int(self.fontMetrics().height()), Qt.AlignRight, str(number))
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
@@ -226,10 +225,16 @@ class IDE(QMainWindow):
         self.editor = CodeEditor(self.symbol_table)
         
 
+         # Crear el botón de actualizar tabla de símbolos
+        self.update_button = QPushButton("Analisis Lexico")
+        self.update_button.clicked.connect(self.editor.analyze_text)  # Conectar el clic al método analyze_text
+
+
         # Layout para dividir el editor de código y la tabla de símbolos
         layout = QHBoxLayout()
         layout.addWidget(self.editor)
         layout.addWidget(self.symbol_table)
+        layout.addWidget(self.update_button)
 
         container = QWidget()
         container.setLayout(layout)

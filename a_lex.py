@@ -109,7 +109,7 @@ def t_newline(t):
 
 # Errores léxicos
 def t_error(t):
-    print(f"Caracter no reconocido '{t.value[0]}'")
+    print(f"Caracter no reconocido '{t.value[0]}' en la línea '{t.value[3]}'")
     t.lexer.skip(1)
 
 # Construcción del lexer
