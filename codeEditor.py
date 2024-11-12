@@ -1,7 +1,11 @@
 import sys
 from PyQt5.QtWidgets import (
+<<<<<<< HEAD
     QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QTableWidgetItem, QLabel, QPushButton, QTextEdit
+=======
+    QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem, QLabel, QPushButton
+>>>>>>> 820b0f4c9603c2089ab8bec1b79b34e955d3249f
 )
 from PyQt5.QtGui import QColor, QPainter, QTextFormat, QSyntaxHighlighter, QTextCharFormat, QFont
 from PyQt5.QtCore import Qt, QRect, QSize, QRegularExpression
@@ -51,8 +55,21 @@ class CodeEditor(QPlainTextEdit):
         self.cursorPositionChanged.connect(self.highlight_current_line)
         self.update_line_number_area_width(0)
 
+<<<<<<< HEAD
         # Aplicar resaltado de sintaxis
         self.highlighter = SyntaxHighlighter(self.document())
+=======
+        # Conecta el evento textChanged al método para analizar el código
+        #self.textChanged.connect(self.analyze_text)
+
+    def analyze_text(self):
+        src = self.toPlainText()  # Obtiene el texto actual del editor
+        tokens = analyze(src)     # Llama a la función analyze y obtiene los tokens
+        self.symbol_table.update_symbols(tokens)  # Actualiza la tabla de símbolos con los tokens
+
+        #print(tokens)
+        #print("###########################################")
+>>>>>>> 820b0f4c9603c2089ab8bec1b79b34e955d3249f
 
     def line_number_area_width(self):
         digits = len(str(self.blockCount()))
@@ -102,9 +119,14 @@ class CodeEditor(QPlainTextEdit):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
+<<<<<<< HEAD
                 painter.setPen(Qt.white)
                 painter.drawText(0, int(top), self.line_number_area.width(), int(self.fontMetrics().height()), Qt.AlignRight, str(number))
 
+=======
+                painter.setPen(Qt.black)
+                painter.drawText(0, int(top), self.line_number_area.width(), int(self.fontMetrics().height()), Qt.AlignRight, str(number))
+>>>>>>> 820b0f4c9603c2089ab8bec1b79b34e955d3249f
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
@@ -214,7 +236,13 @@ class IDE(QMainWindow):
         compile_button = QPushButton("Análisis Léxico", self)
         compile_button.clicked.connect(self.compile_code)
 
+         # Crear el botón de actualizar tabla de símbolos
+        self.update_button = QPushButton("Analisis Lexico")
+        self.update_button.clicked.connect(self.editor.analyze_text)  # Conectar el clic al método analyze_text
+
+
         # Layout para dividir el editor de código y la tabla de símbolos
+<<<<<<< HEAD
         layout = QVBoxLayout()
         editor_layout = QHBoxLayout()
         editor_layout.addWidget(self.editor)
@@ -222,6 +250,12 @@ class IDE(QMainWindow):
 
         layout.addWidget(compile_button)  # Añadir el botón al layout principal
         layout.addLayout(editor_layout)   # Añadir el layout del editor y tabla al layout principal
+=======
+        layout = QHBoxLayout()
+        layout.addWidget(self.editor)
+        layout.addWidget(self.symbol_table)
+        layout.addWidget(self.update_button)
+>>>>>>> 820b0f4c9603c2089ab8bec1b79b34e955d3249f
 
         container = QWidget()
         container.setLayout(layout)
