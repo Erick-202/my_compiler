@@ -1,102 +1,45 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTableWidget, QTableWidgetItem, QLabel
+    QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout,
+    QTableWidget, QTableWidgetItem, QLabel, QPushButton, QTextEdit
 )
-from PyQt5.QtGui import QColor, QPainter, QTextFormat
-from PyQt5.QtCore import Qt, QRect, QSize
+from PyQt5.QtGui import QColor, QPainter, QTextFormat, QSyntaxHighlighter, QTextCharFormat, QFont
+from PyQt5.QtCore import Qt, QRect, QSize, QRegularExpression
 
-from a_lex import analyze
+from a_lex import analyze  # Asegúrate de que `a_lex` contiene la función `analyze`
 
-#######################################################################
-###############         LEX ANALYSIS        ###############################
-#######################################################################
-
-# Clase Token
-class Token:
-    def __init__(self, token_type, value, line, column):
-        self.type = token_type  # Tipo de token (ej. identificador, número, etc.)
-        self.value = value      # Valor del token (ej. nombre del identificador o literal numérico)
-        self.line = line        # Número de línea donde se encontró el token
-        self.column = column    # Posición del token en la línea
-
-    def __repr__(self):
-        return f"Token(type={self.type}, value='{self.value}', line={self.line}, column={self.column})"
-
-
-# Clase LexicalAnalyzer
-class LexicalAnalyzer:
-    def __init__(self, source_code):
-        self.source_code = source_code.splitlines()  # Código fuente dividido por líneas
-        self.line_number = 0                         # Número de línea actual
-        self.column_number = 0                       # Posición actual en la línea
-        self.current_line = self.source_code[self.line_number] if self.source_code else ""
-        self.reserved_words = {"if", "else", "while", "for", "return"}  # Palabras reservadas del lenguaje
-
-    def next_token(self):
-        # Lógica para leer el siguiente token en el código fuente
-        # Aquí puedes agregar la lógica detallada para escanear caracteres y formar tokens
-        pass
-
-    def is_valid_identifier(self, string):
-        # Verifica si la cadena cumple las reglas para un identificador
-        return string.isidentifier()
-
-    def is_reserved_word(self, string):
-        # Verifica si la cadena es una palabra reservada del lenguaje
-        return string in self.reserved_words
-
-    def get_next_char(self):
-        # Método auxiliar para obtener el siguiente carácter del código fuente
-        if self.column_number < len(self.current_line):
-            char = self.current_line[self.column_number]
-            self.column_number += 1
-            return char
-        else:
-            # Fin de línea alcanzado
-            self.line_number += 1
-            if self.line_number < len(self.source_code):
-                self.current_line = self.source_code[self.line_number]
-                self.column_number = 0
-                return self.get_next_char()
-            else:
-                return None  # Fin del código fuente
-
-"""
-# Clase SymbolTable
-class SymbolTable:
-    def __init__(self):
-        self.table = {}  # Estructura de almacenamiento para la tabla de símbolos, se puede utilizar un diccionario
+# Clase para el resaltado de sintaxis
+class SyntaxHighlighter(QSyntaxHighlighter):
+    def __init__(self, parent=None):
+        super(SyntaxHighlighter, self).__init__(parent)
         
-
-    def insert(self, symbol, symbol_type, scope):
-        # Inserta un nuevo símbolo en la tabla
-        if scope not in self.table:
-            self.table[scope] = {}
-        self.table[scope][symbol] = {'type': symbol_type, 'scope': scope}
-
-    def lookup(self, symbol, scope):
-        # Busca un símbolo en el ámbito dado
-        return self.table.get(scope, {}).get(symbol, None)
-
-    def update(self, symbol, symbol_type, scope):
-        # Actualiza el tipo de un símbolo existente en el ámbito dado
-        if scope in self.table and symbol in self.table[scope]:
-            self.table[scope][symbol]['type'] = symbol_type
-
-    def __repr__(self):
-        return f"SymbolTable({self.table})"
-"""
-
-
-
-
-#######################################################################
-###############         IDE        ###############################
-#######################################################################
-
-
-
-
+        # Formato para palabras clave
+        keyword_format = QTextCharFormat()
+        keyword_format.setForeground(QColor("blue"))
+        keyword_format.setFontWeight(QFont.Bold)
+        
+        # Palabras clave
+        keywords = ["int", "float", "string", "boolean", "if", "else", "while", "for", "true", "false"]
+        self.highlighting_rules = [(QRegularExpression(r"\b" + keyword + r"\b"), keyword_format) for keyword in keywords]
+        
+        # Formato para literales de cadena
+        string_format = QTextCharFormat()
+        string_format.setForeground(QColor("darkGreen"))
+        self.highlighting_rules.append((QRegularExpression(r'"[^"\\]*(\\.[^"\\]*)*"'), string_format))
+        
+        # Formato para literales de números
+        number_format = QTextCharFormat()
+        number_format.setForeground(QColor("darkMagenta"))
+        self.highlighting_rules.append((QRegularExpression(r"\b\d+\b"), number_format))
+        
+    def highlightBlock(self, text):
+        # Aplicar cada regla de resaltado
+        for pattern, fmt in self.highlighting_rules:
+            expression = QRegularExpression(pattern)
+            match_iter = expression.globalMatch(text)
+            while match_iter.hasNext():
+                match = match_iter.next()
+                self.setFormat(match.capturedStart(), match.capturedLength(), fmt)
 
 class CodeEditor(QPlainTextEdit):
     def __init__(self, symbol_table, *args, **kwargs):
@@ -108,16 +51,8 @@ class CodeEditor(QPlainTextEdit):
         self.cursorPositionChanged.connect(self.highlight_current_line)
         self.update_line_number_area_width(0)
 
-        # Conecta el evento textChanged al método para analizar el código
-        self.textChanged.connect(self.analyze_text)
-
-    def analyze_text(self):
-        src = self.toPlainText()  # Obtiene el texto actual del editor
-        tokens = analyze(src)     # Llama a la función analyze y obtiene los tokens
-        self.symbol_table.update_symbols(tokens)  # Actualiza la tabla de símbolos con los tokens
-
-        #print(tokens)
-        #print("###########################################")
+        # Aplicar resaltado de sintaxis
+        self.highlighter = SyntaxHighlighter(self.document())
 
     def line_number_area_width(self):
         digits = len(str(self.blockCount()))
@@ -155,7 +90,9 @@ class CodeEditor(QPlainTextEdit):
 
     def line_number_area_paint_event(self, event):
         painter = QPainter(self.line_number_area)
-        painter.fillRect(event.rect(), Qt.lightGray)
+        # Usa un color personalizado con RGB o hexadecimal
+        custom_color = QColor("#1e1e1e")  # RGB (200, 200, 200) o QColor("#C8C8C8")
+        painter.fillRect(event.rect(), custom_color)
 
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
@@ -165,13 +102,14 @@ class CodeEditor(QPlainTextEdit):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
-                painter.setPen(Qt.black)
-                painter.drawText(0, top, self.line_number_area.width(), self.fontMetrics().height(),
-                                 Qt.AlignRight, number)
+                painter.setPen(Qt.white)
+                painter.drawText(0, int(top), self.line_number_area.width(), int(self.fontMetrics().height()), Qt.AlignRight, str(number))
+
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
+
 
 class LineNumberArea(QWidget):
     def __init__(self, editor):
@@ -184,6 +122,7 @@ class LineNumberArea(QWidget):
     def paintEvent(self, event):
         self.code_editor.line_number_area_paint_event(event)
 
+
 class SymbolTable(QWidget):
     def __init__(self):
         super().__init__()
@@ -191,30 +130,76 @@ class SymbolTable(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout()
-        
         label = QLabel("Tabla de Símbolos")
         layout.addWidget(label)
-        
-        # Crear la tabla con 4 columnas
-        self.table = QTableWidget(0, 4)  # Inicialmente sin filas
-        self.table.setHorizontalHeaderLabels(["Símbolo", "Tipo", "Línea", "Columna"])
-        
+
+        # Crear la tabla con las columnas requeridas
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Nombre", "Tipo", "Valor", "Línea", "Columna"])
         layout.addWidget(self.table)
         self.setLayout(layout)
 
     def update_symbols(self, tokens):
-        # Borrar los datos anteriores
-        self.table.setRowCount(0)
-        
-        # Insertar nuevos datos
+        self.table.setRowCount(0)  # Borrar datos anteriores
+
+        # Variables para almacenar el estado actual
+        current_type = None
+        current_identifier = None
+        current_value = "NULL"  # Valor predeterminado
+        expecting_value = False  # Indica si estamos esperando un valor después de '='
+        found_name = False  # Indica si ya hemos encontrado el nombre de la variable
+
+        # Recorrer los tokens para identificar declaraciones de variables
         for token in tokens:
-            symbol, token_type, line, column = token
-            row_position = self.table.rowCount()
-            self.table.insertRow(row_position)
-            self.table.setItem(row_position, 0, QTableWidgetItem(str(symbol)))
-            self.table.setItem(row_position, 1, QTableWidgetItem(token_type))
-            self.table.setItem(row_position, 2, QTableWidgetItem(str(line)))
-            self.table.setItem(row_position, 3, QTableWidgetItem(str(column)))
+            token_value, token_type, line, column = token
+
+            if token_type in ["INT", "FLOAT", "STRING", "BOOLEAN"]:
+                current_type = token_value  # Captura el tipo de dato
+
+            elif token_type == "IDENTIFIER" and current_type and not found_name:
+                # Captura el identificador después de declarar el tipo como nombre de la variable
+                current_identifier = token_value
+                found_name = True  # Marcar que hemos encontrado el nombre de la variable
+
+            elif token_type == "ASSIGN" and current_identifier:
+                # Indica que el siguiente token debe ser el valor asignado
+                expecting_value = True
+
+            elif expecting_value:
+                # Si estamos esperando un valor, verificar si es compatible con el tipo
+                if current_type == "int" and token_type == "INT_LITERAL":
+                    current_value = token_value
+                elif current_type == "float" and token_type == "FLOAT_LITERAL":
+                    current_value = token_value
+                elif current_type == "boolean" and token_value in ["true", "false"]:
+                    current_value = token_value
+                elif current_type == "string" and token_type == "STRING_LITERAL":
+                    current_value = token_value.strip('"')
+                else:
+                    # Si el valor no es compatible, lo dejamos como "NULL"
+                    current_value = "NULL"
+                expecting_value = False
+
+            elif token_type == "SEMICOLON" and found_name:
+                # Solo ahora agregamos a la tabla de símbolos si todo es correcto
+                row_position = self.table.rowCount()
+                self.table.insertRow(row_position)
+                self.table.setItem(row_position, 0, QTableWidgetItem(current_identifier))
+                self.table.setItem(row_position, 1, QTableWidgetItem(current_type))
+                self.table.setItem(row_position, 2, QTableWidgetItem(str(current_value)))
+                self.table.setItem(row_position, 3, QTableWidgetItem(str(line)))
+                self.table.setItem(row_position, 4, QTableWidgetItem(str(column)))
+
+                # Restablece los valores después de agregar la variable
+                current_identifier = None
+                current_type = None
+                current_value = "NULL"
+                expecting_value = False
+                found_name = False  # Listo para la próxima declaración
+
+        # Actualización forzada de la tabla de símbolos
+        self.table.viewport().update()
+
 
 class IDE(QMainWindow):
     def __init__(self):
@@ -224,12 +209,19 @@ class IDE(QMainWindow):
     def initUI(self):
         self.symbol_table = SymbolTable()
         self.editor = CodeEditor(self.symbol_table)
-        
+
+        # Crear botón de "Compilar"
+        compile_button = QPushButton("Análisis Léxico", self)
+        compile_button.clicked.connect(self.compile_code)
 
         # Layout para dividir el editor de código y la tabla de símbolos
-        layout = QHBoxLayout()
-        layout.addWidget(self.editor)
-        layout.addWidget(self.symbol_table)
+        layout = QVBoxLayout()
+        editor_layout = QHBoxLayout()
+        editor_layout.addWidget(self.editor)
+        editor_layout.addWidget(self.symbol_table)
+
+        layout.addWidget(compile_button)  # Añadir el botón al layout principal
+        layout.addLayout(editor_layout)   # Añadir el layout del editor y tabla al layout principal
 
         container = QWidget()
         container.setLayout(layout)
@@ -237,6 +229,12 @@ class IDE(QMainWindow):
 
         self.setWindowTitle("IDE C+|- ")
         self.setGeometry(100, 100, 1150, 600)
+
+    def compile_code(self):
+        src = self.editor.toPlainText()
+        tokens = analyze(src)
+        self.symbol_table.update_symbols(tokens)
+
 
 def main():
     app = QApplication(sys.argv)
