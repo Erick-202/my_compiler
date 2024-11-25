@@ -5,7 +5,6 @@ tokens = [
     # Identificadores y palabras reservadas
     'IDENTIFIER',
     'INT_LITERAL',
-    'FLOAT_LITERAL',
     'STRING_LITERAL',
 
     # Operadores
@@ -29,7 +28,6 @@ reserved = {
     'while': 'WHILE',
     'for': 'FOR',
     'int': 'INT',
-    'float': 'FLOAT',
     'string': 'STRING',
     'boolean': 'BOOLEAN',
     'true': 'TRUE',
@@ -74,11 +72,6 @@ t_ignore = ' \t'  # Ignorar espacios y tabulaciones
 def t_IDENTIFIER(t):
     r'[A-Za-z_][A-Za-z0-9_]*'
     t.type = reserved.get(t.value, 'IDENTIFIER')  # Verificar si es palabra reservada
-    return t
-
-def t_FLOAT_LITERAL(t):
-    r'\d+\.\d+'
-    t.value = float(t.value)
     return t
 
 def t_INT_LITERAL(t):

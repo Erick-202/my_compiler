@@ -1,9 +1,14 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QPlainTextEdit, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget, QTableWidgetItem, QLabel, QPushButton, QTextEdit
+    QTableWidget, QTableWidgetItem, QLabel, QPushButton, QTextEdit, QAction,
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+    QTextEdit,
+    QMenuBar
 )
-from PyQt5.QtGui import QColor, QPainter, QTextFormat, QSyntaxHighlighter, QTextCharFormat, QFont
+from PyQt5.QtGui import QColor, QPainter, QTextFormat, QSyntaxHighlighter, QTextCharFormat, QFont, QPalette
 from PyQt5.QtCore import Qt, QRect, QSize, QRegularExpression
 
 from a_lex import analyze  # Asegúrarse de que `a_lex` contiene la función `analyze`
@@ -19,7 +24,7 @@ class SyntaxHighlighter(QSyntaxHighlighter):
         keyword_format.setFontWeight(QFont.Bold)
         
         # Palabras clave
-        keywords = ["int", "float", "string", "boolean", "if", "else", "while", "for", "true", "false"]
+        keywords = ["int", "string", "boolean", "if", "else", "while", "for", "true", "false"]
         self.highlighting_rules = [(QRegularExpression(r"\b" + keyword + r"\b"), keyword_format) for keyword in keywords]
         
         # Formato para literales de cadena
@@ -151,7 +156,7 @@ class SymbolTable(QWidget):
         for token in tokens:
             token_value, token_type, line, column = token
 
-            if token_type in ["INT", "FLOAT", "STRING", "BOOLEAN"]:
+            if token_type in ["INT", "STRING", "BOOLEAN"]:
                 current_type = token_value  # Captura el tipo de dato
 
             elif token_type == "IDENTIFIER" and current_type and not found_name:
@@ -167,8 +172,8 @@ class SymbolTable(QWidget):
                 # Si estamos esperando un valor, verificar si es compatible con el tipo
                 if current_type == "int" and token_type == "INT_LITERAL":
                     current_value = token_value
-                elif current_type == "float" and token_type == "FLOAT_LITERAL":
-                    current_value = token_value
+                #elif current_type == "float" and token_type == "FLOAT_LITERAL":
+                #    current_value = token_value
                 elif current_type == "boolean" and token_value in ["true", "false"]:
                     current_value = token_value
                 elif current_type == "string" and token_type == "STRING_LITERAL":
@@ -199,27 +204,115 @@ class SymbolTable(QWidget):
         self.table.viewport().update()
 
 
+class ToolBar(QMainWindow):
+    def __init__(self, editor, parent=None):
+        super().__init__()
+
+        self.setWindowTitle("Text Editor with Toolbar")
+
+        # Editor de texto como widget central
+        self.editor = editor
+        self.setCentralWidget(self.editor)
+
+        # Crear barra de menús
+        self.create_menus()
+
+    def create_menus(self):
+        # Crear barra de menú
+        menu_bar = QMenuBar(self)
+        self.setMenuBar(menu_bar)
+
+        # Menú File
+        file_menu = menu_bar.addMenu("&File")
+
+        open_action = QAction("Open", self)
+        open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(self.open_file)
+        file_menu.addAction(open_action)
+
+        save_action = QAction("Save", self)
+        save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self.save_file)
+        file_menu.addAction(save_action)
+
+        file_menu.addSeparator()
+
+        # Menú Run
+        run_menu = menu_bar.addMenu("&Run")
+        run_menu.addAction(QAction("Run Code", self))
+
+        # Menú Help
+        help_menu = menu_bar.addMenu("&Help")
+        help_menu.addAction(QAction("About", self))
+
+    def open_file(self):
+        # Abrir cuadro de diálogo para seleccionar archivo
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Open File", "", "Text Files (*.txt);;All Files (*)"
+        )
+
+        if file_path:
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    content = file.read()
+                    self.editor.setText(content)
+            except Exception as e:
+                print(f"Error al abrir el archivo: {e}")
+
+    def save_file(self):
+        # Abrir cuadro de diálogo para guardar archivo
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Save File", "", "Text Files (*.txt);;All Files (*)"
+        )
+
+        if file_path:
+            try:
+                with open(file_path, "w", encoding="utf-8") as file:
+                    content = self.editor.toPlainText()
+                    file.write(content)
+            except Exception as e:
+                print(f"Error al guardar el archivo: {e}")
+
 class IDE(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
 
     def initUI(self):
+        
         self.symbol_table = SymbolTable()
         self.editor = CodeEditor(self.symbol_table)
+        self.tool_bar = ToolBar(self.editor)
 
         # Crear botón de "Compilar"
+        
         compile_button = QPushButton("Compilar", self)
         compile_button.clicked.connect(self.compile_code)
+
+        """
+        self.terminal_output = QPlainTextEdit()
+        self.terminal_output.setReadOnly(True)
+        self.terminal_output.setFixedHeight(150)  # Ajusta la altura de la terminal
+        
+        # Configurar el color de fondo y del texto
+        palette = QPalette()
+        palette.setColor(QPalette.Base, QColor(0, 0, 0))  # Fondo negro
+        palette.setColor(QPalette.Text, QColor(255, 255, 255))  # Texto blanco
+        self.terminal_output.setPalette(palette)
+        """
+        #Terminal
+        
 
         # Layout para dividir el editor de código y la tabla de símbolos
         layout = QVBoxLayout()
         editor_layout = QHBoxLayout()
+        editor_layout.addWidget(self.tool_bar)
         editor_layout.addWidget(self.editor)
         editor_layout.addWidget(self.symbol_table)
 
         layout.addWidget(compile_button)  # Añadir el botón al layout principal
         layout.addLayout(editor_layout)   # Añadir el layout del editor y tabla al layout principal
+        
 
         container = QWidget()
         container.setLayout(layout)
@@ -229,7 +322,17 @@ class IDE(QMainWindow):
         self.setGeometry(100, 100, 1150, 600)
 
     def compile_code(self):
+        # Obtener el contenido del editor
         src = self.editor.toPlainText()
+        
+        # Guardar el contenido en un archivo .txt
+        try:
+            with open("output_code.txt", "w", encoding="utf-8") as file:
+                file.write(src)
+            print("El código se ha guardado exitosamente en output_code.txt")
+        except Exception as e:
+            print(f"Error al guardar el archivo: {e}")
+
         tokens = analyze(src)
         self.symbol_table.update_symbols(tokens)
 
