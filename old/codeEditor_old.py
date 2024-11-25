@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QColor, QPainter, QTextFormat, QSyntaxHighlighter, QTextCharFormat, QFont, QPalette
 from PyQt5.QtCore import Qt, QRect, QSize, QRegularExpression
 
+import toolBar
+
 from a_lex import analyze  # Asegúrarse de que `a_lex` contiene la función `analyze`
 
 # Clase para el resaltado de sintaxis
@@ -204,74 +206,6 @@ class SymbolTable(QWidget):
         self.table.viewport().update()
 
 
-class ToolBar(QMainWindow):
-    def __init__(self, editor, parent=None):
-        super().__init__()
-
-        self.setWindowTitle("Text Editor with Toolbar")
-
-        # Editor de texto como widget central
-        self.editor = editor
-        self.setCentralWidget(self.editor)
-
-        # Crear barra de menús
-        self.create_menus()
-
-    def create_menus(self):
-        # Crear barra de menú
-        menu_bar = QMenuBar(self)
-        self.setMenuBar(menu_bar)
-
-        # Menú File
-        file_menu = menu_bar.addMenu("&File")
-
-        open_action = QAction("Open", self)
-        open_action.setShortcut("Ctrl+O")
-        open_action.triggered.connect(self.open_file)
-        file_menu.addAction(open_action)
-
-        save_action = QAction("Save", self)
-        save_action.setShortcut("Ctrl+S")
-        save_action.triggered.connect(self.save_file)
-        file_menu.addAction(save_action)
-
-        file_menu.addSeparator()
-
-        # Menú Run
-        run_menu = menu_bar.addMenu("&Run")
-        run_menu.addAction(QAction("Run Code", self))
-
-        # Menú Help
-        help_menu = menu_bar.addMenu("&Help")
-        help_menu.addAction(QAction("About", self))
-
-    def open_file(self):
-        # Abrir cuadro de diálogo para seleccionar archivo
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Open File", "", "Text Files (*.txt);;All Files (*)"
-        )
-
-        if file_path:
-            try:
-                with open(file_path, "r", encoding="utf-8") as file:
-                    content = file.read()
-                    self.editor.setText(content)
-            except Exception as e:
-                print(f"Error al abrir el archivo: {e}")
-
-    def save_file(self):
-        # Abrir cuadro de diálogo para guardar archivo
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save File", "", "Text Files (*.txt);;All Files (*)"
-        )
-
-        if file_path:
-            try:
-                with open(file_path, "w", encoding="utf-8") as file:
-                    content = self.editor.toPlainText()
-                    file.write(content)
-            except Exception as e:
-                print(f"Error al guardar el archivo: {e}")
 
 class IDE(QMainWindow):
     def __init__(self):
@@ -282,7 +216,7 @@ class IDE(QMainWindow):
         
         self.symbol_table = SymbolTable()
         self.editor = CodeEditor(self.symbol_table)
-        self.tool_bar = ToolBar(self.editor)
+        self.tool_bar = toolBar(self.editor)
 
         # Crear botón de "Compilar"
         
