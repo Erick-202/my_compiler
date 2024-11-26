@@ -1,13 +1,15 @@
 import pandas as pd
 
-#POSICION 
-global line, col, stack_col, pila_cadena
-line = 1
-col = 0
-stack_col =[]
+
 
 def lexical_analysis(archivo):
-    global line, col
+    global line, col, stack_col, pila_cadena
+
+    # Reiniciar las variables globales
+    line = 1
+    col = 0
+    stack_col = []
+    pila_cadena = []
 
     # read by default 1st sheet of an excel file
     matrix = pd.read_excel('lexico_errores/matriz.xlsx')

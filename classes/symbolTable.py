@@ -1,12 +1,10 @@
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, 
-    QTableWidget, QTableWidgetItem, QLabel, 
-)
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
 
 
 class SymbolTable(QWidget):
     def __init__(self):
         super().__init__()
+        self.symbols = {}  # Diccionario para almacenar símbolos
         self.initUI()
 
     def initUI(self):
@@ -23,14 +21,13 @@ class SymbolTable(QWidget):
     def update_symbols(self, tokens):
         self.table.setRowCount(0)  # Borrar datos anteriores
 
-        # Variables para almacenar el estado actual
+        # Diccionario para rastrear variables declaradas
+        declared_symbols = {}
+
         current_type = None
         current_identifier = None
-        current_value = "NULL"  # Valor predeterminado
-        expecting_value = False  # Indica si estamos esperando un valor después de '='
-        found_name = False  # Indica si ya hemos encontrado el nombre de la variable
+        current_value = None
 
-        # Recorrer los tokens para identificar declaraciones de variables
         for token in tokens:
             if len(token) != 4:
                 print(f"Token inválido: {token}")
@@ -38,43 +35,64 @@ class SymbolTable(QWidget):
 
             token_value, token_type, line, column = token
 
-            if token_type == "int":
-                current_type = token_value  # Captura el tipo de dato
+            # Capturar tipo de dato
+            if token_type in ["int", "string", "boolean"]:
+                current_type = token_value
 
-            elif token_type == "id" and current_type and not found_name:
-                # Captura el identificador después de declarar el tipo como nombre de la variable
-                current_identifier = token_value
-                found_name = True  # Marcar que hemos encontrado el nombre de la variable
-
-            elif token_type == "asign" and current_identifier:
-                # Indica que el siguiente token debe ser el valor asignado
-                expecting_value = True
-
-            elif expecting_value:
-                # Si estamos esperando un valor, verificar si es compatible con el tipo
-                if current_type == "int" and token_type == "number":
-                    current_value = token_value
+            # Capturar identificador (nombre de variable)
+            elif token_type == "id":
+                if current_type:  # Declaración nueva
+                    current_identifier = token_value
+                elif token_value in declared_symbols:  # Asignación a variable existente
+                    current_identifier = token_value
                 else:
-                    # Si el valor no es compatible, lo dejamos como "NULL"
-                    current_value = "NULL"
-                expecting_value = False
+                    # Error: Variable no declarada
+                    print(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
+                    current_identifier = None
 
-            elif token_type == "semicolon" and found_name:
-                # Solo ahora agregamos a la tabla de símbolos si todo es correcto
-                row_position = self.table.rowCount()
-                self.table.insertRow(row_position)
-                self.table.setItem(row_position, 0, QTableWidgetItem(current_identifier))
-                self.table.setItem(row_position, 1, QTableWidgetItem(current_type))
-                self.table.setItem(row_position, 2, QTableWidgetItem(str(current_value)))
-                self.table.setItem(row_position, 3, QTableWidgetItem(str(line)))
-                self.table.setItem(row_position, 4, QTableWidgetItem(str(column)))
+            # Detectar asignación
+            elif token_type == "asign" and current_identifier:
+                continue  # Esperar el valor asignado
 
-                # Restablece los valores después de agregar la variable
-                current_identifier = None
+            # Capturar valor asignado
+            elif current_identifier and token_type in ["number", "chain", "true", "false"]:
+                current_value = token_value
+
+            # Finalizar declaración o asignación al encontrar un punto y coma
+            elif token_type == "semicolon" and current_identifier:
+                if current_identifier in declared_symbols:
+                    # Actualizar valor de una variable existente
+                    declared_symbols[current_identifier]["value"] = current_value
+                    declared_symbols[current_identifier]["line"] = line
+                    declared_symbols[current_identifier]["column"] = column
+                else:
+                    # Agregar una nueva variable declarada
+                    declared_symbols[current_identifier] = {
+                        "type": current_type,
+                        "value": current_value,
+                        "line": line,
+                        "column": column
+                    }
+
+                # Actualizar la tabla visual
+                self.update_table(declared_symbols)
+
+                # Resetear valores temporales
                 current_type = None
-                current_value = "NULL"
-                expecting_value = False
-                found_name = False  # Listo para la próxima declaración
+                current_identifier = None
+                current_value = None
 
-        # Actualización forzada de la tabla de símbolos
-        self.table.viewport().update()
+        # Actualización final de la tabla visual
+        self.update_table(declared_symbols)
+
+    def update_table(self, declared_symbols):
+        """Actualiza la tabla visual con el contenido del diccionario de símbolos."""
+        self.table.setRowCount(0)  # Limpiar la tabla
+        for identifier, details in declared_symbols.items():
+            row_position = self.table.rowCount()
+            self.table.insertRow(row_position)
+            self.table.setItem(row_position, 0, QTableWidgetItem(identifier))
+            self.table.setItem(row_position, 1, QTableWidgetItem(details["type"] or "N/A"))
+            self.table.setItem(row_position, 2, QTableWidgetItem(str(details["value"])))
+            self.table.setItem(row_position, 3, QTableWidgetItem(str(details["line"])))
+            self.table.setItem(row_position, 4, QTableWidgetItem(str(details["column"])))
