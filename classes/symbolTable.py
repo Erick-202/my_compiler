@@ -95,4 +95,8 @@ class SymbolTable(QWidget):
             self.table.setItem(row_position, 1, QTableWidgetItem(details["type"] or "N/A"))
             self.table.setItem(row_position, 2, QTableWidgetItem(str(details["value"])))
             self.table.setItem(row_position, 3, QTableWidgetItem(str(details["line"])))
+<<<<<<< HEAD
             self.table.setItem(row_position, 4, QTableWidgetItem(str(details["column"])))
+=======
+            self.table.setItem(row_position, 4, QTableWidgetItem(str(details["column"])))
+>>>>>>> bc90e2c63b6932c36b192848f867399011e8f58c
