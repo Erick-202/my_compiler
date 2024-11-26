@@ -1,4 +1,5 @@
 import sys
+
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,QTableWidgetItem,
     QPushButton,
@@ -11,7 +12,9 @@ from PyQt5.QtCore import Qt
 from classes.toolBar import ToolBar
 from classes.symbolTable import SymbolTable
 from classes.codeEditor import CodeEditor
+from classes.terminal import Terminal
 import lexico_errores.my_lex as my_lex 
+
 
 
 class IDE(QMainWindow):
@@ -24,35 +27,15 @@ class IDE(QMainWindow):
         self.symbol_table = SymbolTable()
         self.editor = CodeEditor(self.symbol_table)
         self.tool_bar = ToolBar(self.editor)
-        self.terminal = QWidget()  # Un espacio reservado para tu terminal
+        self.terminal = Terminal()  # Un espacio reservado para tu terminal
         self.terminal.setStyleSheet("background-color: #f0f0f0;")  # Estilo de ejemplo
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
-
         compile_button = QPushButton("Compilar")
         compile_button.clicked.connect(self.compile_code)
-
-        # Botones para ejecutar el codigo paso a paso
-        next_button = QPushButton("Siguiente")
-        compile_button.clicked.connect(self.compile_next)
-        back_button = QPushButton("Anterior")
-        compile_button.clicked.connect(self.compile_back)
-        
-        # Agregar los botones al layout horizontal
-        button_layout.addWidget(compile_button)
-        button_layout.addWidget(next_button)
-        button_layout.addWidget(back_button)
-
-        # Crear un contenedor para el layout de botones
-        button_container = QWidget()
-        button_container.setLayout(button_layout)
-
-        # Agregar la barra de herramientas y el contenedor de botones al layout vertical
         header_layout.addWidget(self.tool_bar)
-        header_layout.addWidget(button_container)
-
+        header_layout.addWidget(compile_button)
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
@@ -84,36 +67,50 @@ class IDE(QMainWindow):
         self.setGeometry(100, 100, 1150, 600)
 
     def compile_code(self):
+        # Limpiar la terminal y la barra de herramientas antes de compilar
+        self.terminal.clear_terminal()
+        self.tool_bar.clear_errors()
+
         # Obtener el contenido del editor
         src = self.editor.toPlainText()
 
-        #######################################################################################    
-        #############################      PASO 1 : Leer el archivo     ############################
-        #######################################################################################
-
-        
-        # Guardar el contenido en un archivo .txt
+        # Guardar el contenido en un archivo
         try:
             with open("source_code.txt", "w", encoding="utf-8") as file:
                 file.write(src)
-            print("El código se ha guardado exitosamente en source_code.txt")
         except Exception as e:
-            print(f"Error al guardar el archivo: {e}")
-        
-        lex_result = my_lex.lex_analyze('source_code.txt')
-        tokens = lex_result[0]
-        errors = lex_result[1]
+            self.terminal.append_message(f"Error al guardar el archivo: {e}")
+            return
 
-        print(tokens)
-        print(errors)
+        # Realizar el análisis léxico
+        try:
+            lex_result = my_lex.lex_analyze("source_code.txt")
+            self.tokens = lex_result[0]
+            self.errors = lex_result[1]
 
-        self.symbol_table.update_symbols(tokens)
+            # Actualizar la tabla de tokens en el ToolBar
+            self.tool_bar.update_data(self.tokens)
 
-    def compile_next(self):
-        pass
+            # Actualizar la tabla de símbolos
+            self.symbol_table.update_symbols(self.tokens)
 
-    def compile_back(self):
-        pass
+            # Mostrar errores en la terminal
+            if self.errors:
+                self.terminal.append_message("Errores encontrados:")
+                for error in self.errors:
+                    line = error.get("line", "?")
+                    message = error.get("message", "Error desconocido")
+                    self.terminal.append_message(f"Línea {line}: {message}")
+
+                # Agregar errores a la pila en el ToolBar
+                self.tool_bar.add_errors(self.errors)
+            else:
+                self.terminal.append_message("Compilación exitosa: Sin errores.")
+
+        except Exception as e:
+            self.terminal.append_message(f"Error durante el análisis léxico: {e}")
+
+ 
 
 def main():
     app = QApplication(sys.argv)

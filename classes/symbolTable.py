@@ -1,12 +1,10 @@
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, 
-    QTableWidget, QTableWidgetItem, QLabel, 
-)
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
 
 
 class SymbolTable(QWidget):
     def __init__(self):
         super().__init__()
+        self.symbols = {}  # Diccionario para almacenar símbolos
         self.initUI()
 
     def initUI(self):
