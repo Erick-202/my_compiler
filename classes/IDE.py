@@ -33,11 +33,12 @@ class IDE(QMainWindow):
         self.terminal.setStyleSheet("background-color: #f0f0f0;")  # Estilo de ejemplo
          # Agregar una imagen
         image_label = QLabel()
-        pixmap = QPixmap("classes/resources/imagen.png")  
+        pixmap = QPixmap("classes/resources/imagen.jpg")  
         image_label.setPixmap(pixmap)
         image_label.setScaledContents(True)  
-        image_label.setFixedSize(500, 200)
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setFixedSize(1500, 200)
+        
+
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
@@ -46,6 +47,7 @@ class IDE(QMainWindow):
         header_layout.addWidget(self.tool_bar)
         header_layout.addWidget(compile_button)
         header_layout.addWidget(image_label)
+        
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
