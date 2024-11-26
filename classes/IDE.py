@@ -6,11 +6,12 @@ from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QSplitter,
+    QLabel
 )
 
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
-
+from PyQt5.QtGui import QPixmap
 from classes.toolBar import ToolBar
 from classes.symbolTable import SymbolTable
 from classes.codeEditor import CodeEditor
@@ -18,6 +19,7 @@ from classes.terminal import Terminal
 
 
 import lexico_errores.my_lex as my_lex 
+
 import syntax.my_syntax as my_syntax 
 
 
@@ -93,6 +95,7 @@ class IDE(QMainWindow):
         main_splitter.addWidget(self.terminal)
         main_splitter.setSizes([100, 400, 100])  # Tamaño inicial
         main_splitter.setStyleSheet("QSplitter::handle { background-color: gray; height: 4px; }")
+         
 
         # Configurar el diseño principal
         container = QWidget()
