@@ -6,14 +6,16 @@ from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QSplitter,
+    QLabel
 )
 from PyQt5.QtCore import Qt
-
+from PyQt5.QtGui import QPixmap
 from classes.toolBar import ToolBar
 from classes.symbolTable import SymbolTable
 from classes.codeEditor import CodeEditor
 from classes.terminal import Terminal
 import lexico_errores.my_lex as my_lex 
+
 
 
 
@@ -29,6 +31,13 @@ class IDE(QMainWindow):
         self.tool_bar = ToolBar(self.editor)
         self.terminal = Terminal()  # Un espacio reservado para tu terminal
         self.terminal.setStyleSheet("background-color: #f0f0f0;")  # Estilo de ejemplo
+         # Agregar una imagen
+        image_label = QLabel()
+        pixmap = QPixmap("classes/resources/imagen.png")  
+        image_label.setPixmap(pixmap)
+        image_label.setScaledContents(True)  
+        image_label.setFixedSize(500, 200)
+        image_label.setAlignment(Qt.AlignCenter)
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
@@ -36,6 +45,7 @@ class IDE(QMainWindow):
         compile_button.clicked.connect(self.compile_code)
         header_layout.addWidget(self.tool_bar)
         header_layout.addWidget(compile_button)
+        header_layout.addWidget(image_label)
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
@@ -54,6 +64,7 @@ class IDE(QMainWindow):
         main_splitter.addWidget(self.terminal)
         main_splitter.setSizes([100, 400, 100])  # Tamaño inicial
         main_splitter.setStyleSheet("QSplitter::handle { background-color: gray; height: 4px; }")
+         
 
         # Configurar el diseño principal
         container = QWidget()
@@ -66,6 +77,8 @@ class IDE(QMainWindow):
         self.setWindowTitle("IDE C+|- ")
         self.setGeometry(100, 100, 1150, 600)
 
+
+        
     def compile_code(self):
         # Limpiar la terminal y la barra de herramientas antes de compilar
         self.terminal.clear_terminal()
