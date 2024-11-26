@@ -1,19 +1,24 @@
 import sys
 
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,QTableWidgetItem,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,QTableWidgetItem,QLabel,
     QPushButton,
     QApplication,
     QMainWindow,
     QSplitter,
 )
+
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 
 from classes.toolBar import ToolBar
 from classes.symbolTable import SymbolTable
 from classes.codeEditor import CodeEditor
 from classes.terminal import Terminal
+
+
 import lexico_errores.my_lex as my_lex 
+import syntax.my_syntax as my_syntax 
 
 
 
@@ -29,13 +34,47 @@ class IDE(QMainWindow):
         self.tool_bar = ToolBar(self.editor)
         self.terminal = Terminal()  # Un espacio reservado para tu terminal
         self.terminal.setStyleSheet("background-color: #f0f0f0;")  # Estilo de ejemplo
+        self.state = 1  #Controlar el orden en que se pueden presionar los botones de Análisis
+
+        #Colores semáforo
+        self.success = "#28a745"  
+        self.warning = "#ffc107"  
+        self.danger = "#dc3545"   
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
-        compile_button = QPushButton("Compilar")
-        compile_button.clicked.connect(self.compile_code)
+        button_layout = QHBoxLayout()
+
+        # Agregar una imagen
+        image_label = QLabel()
+        pixmap = QPixmap("resources/banner_top.jpg")  
+        image_label.setPixmap(pixmap)
+        image_label.setScaledContents(True)  
+        image_label.setFixedSize(1500, 100)
+
+        self.lex_button = QPushButton("Análisis Léxico")
+        self.lex_button.clicked.connect(self.run_lex)
+        self.change_button_color(self.lex_button,self.warning)
+
+        self.syntax_button = QPushButton("Análisis Sintáctico")
+        self.syntax_button.clicked.connect(self.run_syntax)
+        self.change_button_color(self.syntax_button,self.danger)
+
+        self.semantic_button = QPushButton("Análisis Semántico")
+        self.semantic_button.clicked.connect(self.run_semantic)
+        self.change_button_color(self.semantic_button,self.danger)
+
+        button_layout.addWidget(self.lex_button)
+        button_layout.addWidget(self.syntax_button)
+        button_layout.addWidget(self.semantic_button)
+
+        button_container = QWidget()
+        button_container.setLayout(button_layout)
+
         header_layout.addWidget(self.tool_bar)
-        header_layout.addWidget(compile_button)
+        header_layout.addWidget(image_label)
+        header_layout.addWidget(button_container)
+
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
@@ -64,9 +103,28 @@ class IDE(QMainWindow):
 
         # Configuración de la ventana
         self.setWindowTitle("IDE C+|- ")
-        self.setGeometry(100, 100, 1150, 600)
+        self.setGeometry(100, 100, 1150, 850)
 
-    def compile_code(self):
+    def change_button_color(self, button, color):
+        """
+        Cambia el color de fondo de un botón.
+        :param button: El botón QPushButton cuyo color se cambiará.
+        :param color: El color en formato CSS (ej., "red", "#RRGGBB").
+        """
+        button.setStyleSheet(f"background-color: {color};")
+
+    ####################################################################################################################
+    ###########################################     PASO 1: ANÁLISIS LÉXICO  #############################################
+    ####################################################################################################################
+    #
+    #
+    #
+    #
+    def run_lex(self):
+
+        if self.state != 1: 
+            self.change_button_color(self.semantic_button,self.danger)
+        
         # Limpiar la terminal y la barra de herramientas antes de compilar
         self.terminal.clear_terminal()
         self.tool_bar.clear_errors()
@@ -109,7 +167,41 @@ class IDE(QMainWindow):
 
         except Exception as e:
             self.terminal.append_message(f"Error durante el análisis léxico: {e}")
+        
+        self.change_button_color(self.lex_button,self.success)
+        self.change_button_color(self.syntax_button,self.warning)
+        self.state = 2
+        
+        
+    ####################################################################################################################
+    ###########################################     PASO 2: ANÁLISIS SINTÁCTICO  #############################################
+    ####################################################################################################################
+    #   El análisis sintáctico requiere los tokens ya clasificados provenientes del analizador léxico 
+    #   No es necesario pasarle los tokens como parámetro a la funcion run_syntax ya que los tokens 
+    #   se guardan en un atributo del objeto llamado self.tokens lo que permite que sean datos accesibles en toda la clase 
+    def run_syntax(self):
+        
+        if self.state == 2:
+            print("HACER SINTACTICO")
+            print(self.tokens)
+            my_syntax.my_syntax(self.tokens)
 
+            self.change_button_color(self.syntax_button,self.success)
+            self.change_button_color(self.semantic_button,self.warning)
+            self.state = 3
+        else:
+            #print("Primero tienes que hacer el Análisis Léxico")
+            self.terminal.append_message("Primero tienes que hacer el Análisis Léxico")
+        pass
+
+    def run_semantic(self):
+        if self.state == 3:
+            print("HACER SEMANTICO")
+            self.change_button_color(self.semantic_button,self.success)
+        else:
+            self.terminal.append_message("Primero debes realizar el Análisis Sintáctico")
+            #print("Primero debes realizar el Análisis Sintáctico")
+        pass
  
 
 def main():

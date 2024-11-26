@@ -9,6 +9,9 @@ from PyQt5.QtWidgets import (
     QVBoxLayout
 )
 
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QDesktopServices
+
 class ToolBar(QMainWindow):
     def __init__(self, editor, parent=None):
         super().__init__()
@@ -48,18 +51,9 @@ class ToolBar(QMainWindow):
 
         file_menu.addSeparator()
 
-        # Menú Run
-        run_menu = menu_bar.addMenu("&Run")
-        run_action = QAction("Run Code", self)
-        run_action.triggered.connect(self.run_code)
-        run_menu.addAction(run_action)
 
         # Menú Window
         win_menu = menu_bar.addMenu("&Window")
-
-        show_symbol_table_action = QAction("Show Symbol Table", self)
-        # Vincular a una función si tienes tabla de símbolos
-        win_menu.addAction(show_symbol_table_action)
 
         show_token_table_action = QAction("Show Token Table", self)
         show_token_table_action.triggered.connect(self.show_token_table)
@@ -74,9 +68,17 @@ class ToolBar(QMainWindow):
         # Menú Help
         help_menu = menu_bar.addMenu("&Help")
         help_menu.addAction(QAction("About", self))
-        help_menu.addAction(QAction("Analizador Lexico", self))
-        help_menu.addAction(QAction("Analizador Sintactico", self))
-        help_menu.addAction(QAction("Analizador Semantico", self))
+        lex_analysis_action = QAction("Analizador Lexico", self)
+        lex_analysis_action.triggered.connect(self.open_lexical_analysis_pdf)
+        help_menu.addAction(lex_analysis_action)
+
+        sint_analysis_action = QAction("Analizador Sintactico", self)
+        sint_analysis_action.triggered.connect(self.open_sint_analysis_pdf)
+        help_menu.addAction(sint_analysis_action)
+
+        sem_analysis_action = QAction("Analizador Semantico", self)
+        sem_analysis_action.triggered.connect(self.open_sem_analysis_pdf)
+        help_menu.addAction(sem_analysis_action)
 
     def open_file(self):
         # Abrir cuadro de diálogo para seleccionar archivo
@@ -178,3 +180,29 @@ class ToolBar(QMainWindow):
     
     def update_data(self, tokens):
         self.tokens = tokens
+
+
+    #######################################################################################################
+    #                                   FUNCIONES PARA ABRIR PDFs
+    ######################################################################################################3
+
+    def open_lexical_analysis_pdf(self):
+    # Ruta al archivo PDF
+        pdf_path = "resources/analisis_lexico.pdf"  # Cambia esta ruta a la ubicación de tu PDF
+
+    # Abrir el archivo PDF usando la aplicación predeterminada
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pdf_path))
+
+    def open_sint_analysis_pdf(self):
+    # Ruta al archivo PDF
+        pdf_path = "resources/analisis_sintactico.pdf"  # Cambia esta ruta a la ubicación de tu PDF
+
+    # Abrir el archivo PDF usando la aplicación predeterminada
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pdf_path))
+    
+    def open_sem_analysis_pdf(self):
+    # Ruta al archivo PDF
+        pdf_path = "resources/analisis_semantico.pdf"  # Cambia esta ruta a la ubicación de tu PDF
+
+    # Abrir el archivo PDF usando la aplicación predeterminada
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pdf_path))
