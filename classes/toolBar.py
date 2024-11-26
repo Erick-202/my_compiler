@@ -44,9 +44,16 @@ class ToolBar(QMainWindow):
         run_menu = menu_bar.addMenu("&Run")
         run_menu.addAction(QAction("Run Code", self))
 
+        win_menu = menu_bar.addMenu("&Window")
+        win_menu.addAction(QAction("Show Symbol Table", self))
+        win_menu.addAction(QAction("Show Token Table", self))
+
         # Menú Help
         help_menu = menu_bar.addMenu("&Help")
         help_menu.addAction(QAction("About", self))
+        help_menu.addAction(QAction("Analizador Lexico", self))
+        help_menu.addAction(QAction("Analizador Sintactico", self))
+        help_menu.addAction(QAction("Analizador Semantico", self))
 
     def open_file(self):
         # Abrir cuadro de diálogo para seleccionar archivo

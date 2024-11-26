@@ -10,7 +10,7 @@ def lexical_analysis(archivo):
     global line, col
 
     # read by default 1st sheet of an excel file
-    matrix = pd.read_excel('matriz.xlsx')
+    matrix = pd.read_excel('lexico_errores/matriz.xlsx')
     spaces =  [' ', '\t', '\n']
     pila_comillas = []
     pila_cadena =[]
@@ -174,3 +174,10 @@ def procesar_char(char):
 
 def get_errors(stack_error,code, col,line,place):
     stack_error.append({"code": code, "line": line, "col": col, "place":place})
+
+if __name__ == '__main__':
+    file = 'source_code.txt'
+    result = lexical_analysis(file)[0]
+    for i in result:
+        print(i)
+

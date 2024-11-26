@@ -32,36 +32,34 @@ class SymbolTable(QWidget):
 
         # Recorrer los tokens para identificar declaraciones de variables
         for token in tokens:
+            if len(token) != 4:
+                print(f"Token inválido: {token}")
+                continue
+
             token_value, token_type, line, column = token
 
-            if token_type in ["INT", "STRING", "BOOLEAN"]:
+            if token_type == "int":
                 current_type = token_value  # Captura el tipo de dato
 
-            elif token_type == "IDENTIFIER" and current_type and not found_name:
+            elif token_type == "id" and current_type and not found_name:
                 # Captura el identificador después de declarar el tipo como nombre de la variable
                 current_identifier = token_value
                 found_name = True  # Marcar que hemos encontrado el nombre de la variable
 
-            elif token_type == "ASSIGN" and current_identifier:
+            elif token_type == "asign" and current_identifier:
                 # Indica que el siguiente token debe ser el valor asignado
                 expecting_value = True
 
             elif expecting_value:
                 # Si estamos esperando un valor, verificar si es compatible con el tipo
-                if current_type == "int" and token_type == "INT_LITERAL":
+                if current_type == "int" and token_type == "number":
                     current_value = token_value
-                #elif current_type == "float" and token_type == "FLOAT_LITERAL":
-                #    current_value = token_value
-                elif current_type == "boolean" and token_value in ["true", "false"]:
-                    current_value = token_value
-                elif current_type == "string" and token_type == "STRING_LITERAL":
-                    current_value = token_value.strip('"')
                 else:
                     # Si el valor no es compatible, lo dejamos como "NULL"
                     current_value = "NULL"
                 expecting_value = False
 
-            elif token_type == "SEMICOLON" and found_name:
+            elif token_type == "semicolon" and found_name:
                 # Solo ahora agregamos a la tabla de símbolos si todo es correcto
                 row_position = self.table.rowCount()
                 self.table.insertRow(row_position)
