@@ -32,30 +32,10 @@ class IDE(QMainWindow):
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
-
         compile_button = QPushButton("Compilar")
         compile_button.clicked.connect(self.compile_code)
-
-        # Botones para ejecutar el codigo paso a paso
-        next_button = QPushButton("Siguiente")
-        compile_button.clicked.connect(self.compile_next)
-        back_button = QPushButton("Anterior")
-        compile_button.clicked.connect(self.compile_back)
-        
-        # Agregar los botones al layout horizontal
-        button_layout.addWidget(compile_button)
-        button_layout.addWidget(next_button)
-        button_layout.addWidget(back_button)
-
-        # Crear un contenedor para el layout de botones
-        button_container = QWidget()
-        button_container.setLayout(button_layout)
-
-        # Agregar la barra de herramientas y el contenedor de botones al layout vertical
         header_layout.addWidget(self.tool_bar)
-        header_layout.addWidget(button_container)
-
+        header_layout.addWidget(compile_button)
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
@@ -94,16 +74,7 @@ class IDE(QMainWindow):
         # Obtener el contenido del editor
         src = self.editor.toPlainText()
 
-<<<<<<< HEAD
         # Guardar el contenido en un archivo
-=======
-        #######################################################################################    
-        #############################      PASO 1 : Leer el archivo     ############################
-        #######################################################################################
-
-        
-        # Guardar el contenido en un archivo .txt
->>>>>>> bc90e2c63b6932c36b192848f867399011e8f58c
         try:
             with open("source_code.txt", "w", encoding="utf-8") as file:
                 file.write(src)
@@ -111,21 +82,15 @@ class IDE(QMainWindow):
             self.terminal.append_message(f"Error al guardar el archivo: {e}")
             return
 
-<<<<<<< HEAD
         # Realizar el análisis léxico
         try:
             lex_result = my_lex.lex_analyze("source_code.txt")
             self.tokens = lex_result[0]
             self.errors = lex_result[1]
-=======
-        print(tokens)
-        print(errors)
->>>>>>> bc90e2c63b6932c36b192848f867399011e8f58c
 
             # Actualizar la tabla de tokens en el ToolBar
             self.tool_bar.update_data(self.tokens)
 
-<<<<<<< HEAD
             # Actualizar la tabla de símbolos
             self.symbol_table.update_symbols(self.tokens)
 
@@ -146,13 +111,6 @@ class IDE(QMainWindow):
             self.terminal.append_message(f"Error durante el análisis léxico: {e}")
 
  
-=======
-    def compile_next(self):
-        pass
-
-    def compile_back(self):
-        pass
->>>>>>> bc90e2c63b6932c36b192848f867399011e8f58c
 
 def main():
     app = QApplication(sys.argv)
