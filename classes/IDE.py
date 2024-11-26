@@ -29,10 +29,30 @@ class IDE(QMainWindow):
 
         # Configurar la barra de herramientas y headers
         header_layout = QVBoxLayout()
+        button_layout = QHBoxLayout()
+
         compile_button = QPushButton("Compilar")
         compile_button.clicked.connect(self.compile_code)
+
+        # Botones para ejecutar el codigo paso a paso
+        next_button = QPushButton("Siguiente")
+        compile_button.clicked.connect(self.compile_next)
+        back_button = QPushButton("Anterior")
+        compile_button.clicked.connect(self.compile_back)
+        
+        # Agregar los botones al layout horizontal
+        button_layout.addWidget(compile_button)
+        button_layout.addWidget(next_button)
+        button_layout.addWidget(back_button)
+
+        # Crear un contenedor para el layout de botones
+        button_container = QWidget()
+        button_container.setLayout(button_layout)
+
+        # Agregar la barra de herramientas y el contenedor de botones al layout vertical
         header_layout.addWidget(self.tool_bar)
-        header_layout.addWidget(compile_button)
+        header_layout.addWidget(button_container)
+
         header_container = QWidget()
         header_container.setLayout(header_layout)
 
@@ -66,7 +86,11 @@ class IDE(QMainWindow):
     def compile_code(self):
         # Obtener el contenido del editor
         src = self.editor.toPlainText()
-        
+
+        #######################################################################################    
+        #############################      PASO 1 : Leer el archivo     ############################
+        #######################################################################################
+
         
         # Guardar el contenido en un archivo .txt
         try:
@@ -80,22 +104,16 @@ class IDE(QMainWindow):
         tokens = lex_result[0]
         errors = lex_result[1]
 
-        #tokens = analyze(src)
-        
-        """
-        row_position = self.symbol_table.table.rowCount()
-        self.symbol_table.table.insertRow(row_position)
-        self.symbol_table.table.setItem(row_position, 0, QTableWidgetItem('id'))
-        self.symbol_table.table.setItem(row_position, 1, QTableWidgetItem('current_type'))
-        self.symbol_table.table.setItem(row_position, 2, QTableWidgetItem(str('current_value')))
-        self.symbol_table.table.setItem(row_position, 3, QTableWidgetItem(str('line')))
-        self.symbol_table.table.setItem(row_position, 4, QTableWidgetItem(str('column')))
-        """
         print(tokens)
         print(errors)
 
         self.symbol_table.update_symbols(tokens)
 
+    def compile_next(self):
+        pass
+
+    def compile_back(self):
+        pass
 
 def main():
     app = QApplication(sys.argv)
