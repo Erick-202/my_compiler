@@ -19,7 +19,8 @@ class Parser:
 
     def parse(self):
         res = self.expresion()
-        if not self.errors and self.current_token[1] != "end":
+        #not self.errors
+        if self.errors and self.current_token[1] != "end":
             self.errors.append({"code": "se esperaba un operador aritmetico", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
         return res,self.errors
     

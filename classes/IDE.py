@@ -184,10 +184,20 @@ class IDE(QMainWindow):
     #   se guardan en un atributo del objeto llamado self.tokens lo que permite que sean datos accesibles en toda la clase 
     def run_syntax(self):
         
-        if self.state == 2:
+        if self.state == 2 and self.tokens:
             print("HACER SINTACTICO")
             print(self.tokens)
-            my_syntax.my_syntax(self.tokens)
+            syntax = my_syntax.my_syntax(self.tokens)
+            syntax_res = syntax[0]
+            syntax_err = syntax[2]
+            semantic_err = syntax[3]
+
+            if syntax_err:
+                self.tool_bar.add_errors(syntax_err)
+            elif semantic_err:
+                self.tool_bar.add_errors(semantic_err)
+
+            self.terminal.append_message(str(syntax_res))
 
             self.change_button_color(self.syntax_button,self.success)
             self.change_button_color(self.semantic_button,self.warning)
