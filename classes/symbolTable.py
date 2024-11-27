@@ -18,6 +18,11 @@ class SymbolTable(QWidget):
         layout.addWidget(self.table)
         self.setLayout(layout)
 
+    def clear_table(self):
+        """Limpia la tabla de símbolos."""
+        self.table.setRowCount(0)  # Limpiar la tabla visual
+        self.symbols.clear() 
+
     def update_symbols(self, tokens):
         self.table.setRowCount(0)  # Borrar datos anteriores
 
