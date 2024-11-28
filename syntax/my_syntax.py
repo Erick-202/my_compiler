@@ -23,7 +23,7 @@ def my_syntax(tokens):
             message = (
             f"Error: {error['code']} en la Línea: {error['line']}, Columna: {error['col']}."
         )
-        return three, message
+        return three, message, parser
 
     ################################################################3
     """
@@ -40,6 +40,6 @@ def my_syntax(tokens):
     """
     
 
-    return three, message
+    return three, message, parser
 
 

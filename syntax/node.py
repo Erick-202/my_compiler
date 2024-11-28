@@ -58,3 +58,8 @@ class NodoSi:
      def __init__ (self, cases,else_cases):
         self.cases = cases
         self.else_cases = else_cases
+
+class NodoImpresion:
+    def __init__ (self,valor ):
+        self.valor = valor
+        print (valor)

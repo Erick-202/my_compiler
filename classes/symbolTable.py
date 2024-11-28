@@ -53,13 +53,18 @@ class SymbolTable(QWidget):
 
             # Capturar identificador (nombre de variable)
             elif token_type == "id":
-                if current_type:  # Declaración nueva
-                    current_identifier = token_value
+                if current_type:  # Nueva declaración
+                    if token_value in declared_symbols:
+                        # Error: Variable ya declarada
+                        self.errors.append(f"Error: La variable '{token_value}' ya fue declarada. Línea: {line}")
+                        current_identifier = None
+                        current_type = None  # Resetear el tipo
+                    else:
+                        current_identifier = token_value
                 elif token_value in declared_symbols:  # Asignación a variable existente
                     current_identifier = token_value
                 else:
                     # Error: Variable no declarada
-                    #print(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
                     self.errors.append(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
                     current_identifier = None
 
@@ -78,6 +83,8 @@ class SymbolTable(QWidget):
                     declared_symbols[current_identifier]["value"] = current_value
                     declared_symbols[current_identifier]["line"] = line
                     declared_symbols[current_identifier]["column"] = column
+                    #self.errors.append(f"Error: La variable '{token_value}' ya ha sido declarada. Línea: {line}")
+                    print(declared_symbols)
                 else:
                     # Agregar una nueva variable declarada
                     declared_symbols[current_identifier] = {

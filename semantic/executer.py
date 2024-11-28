@@ -7,6 +7,7 @@ class Executer:
         self.executer_errors = []
         self.symboltable = SymbolTable()
         self.exits = []
+        self.outputs = []
 
     def operation(self,nodo):
         operacion =  type(nodo).__name__
@@ -70,13 +71,14 @@ class Executer:
     def NodoAcceso(self, nodo):
         nombre = nodo.nombre
         valor = self.symboltable.get(nombre)
+        print(valor)
 
         if not valor:
             self.executer_errors.append({"code":f'{nombre}'+ " no esta definido", 
                                          "line": nodo.pos_start, 
                                          "col": nodo.col_pos, 
                                          "place":"-sem"})
-        return valor
+        return valor['value']
     
     def NodoAsignacion(self, nodo):
         nombre = nodo.nombre
@@ -119,3 +121,17 @@ class Executer:
                 return expr_value
         return
 
+    def NodoImpresion(self,nodo):
+        self.valor = nodo.valor
+        if  type((self.valor)) is str:
+            self.outputs.append(self.valor)
+        elif type((self.valor)) is int:
+            print(type(self.valor))
+            self.outputs.append(self.valor)
+        elif type((self.valor))  == "ResultsThree" :
+            print(type((self.valor.nodo)))
+            self.outputs.append(self.operation(self.valor.nodo))
+        else:
+            print(type(self.valor.nodo))
+            self.outputs.append(self.operation(self.valor.nodo))
+        return

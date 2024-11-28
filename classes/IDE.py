@@ -238,10 +238,12 @@ class IDE(QMainWindow):
         if self.state == 3:
             print("HACER SEMANTICO")
             syntax_three = self.syntax[0]
+            syntax_parser = self.syntax[2]
             
-            self.semantic = my_semantic.my_semantic(syntax_three)
+            self.semantic = my_semantic.my_semantic(syntax_three, syntax_parser)
 
             semantic_err = self.semantic[0]
+            semantic_out_list = self.semantic[1]
 
             if semantic_err:
                 self.tool_bar.add_errors(semantic_err)
@@ -249,6 +251,8 @@ class IDE(QMainWindow):
                 self.terminal.append_message(semantic_err)
                 return 
             else:
+                for out in semantic_out_list:
+                    self.terminal.append_message(str(out))
                 self.change_button_color(self.semantic_button,self.success)
                 self.terminal.append_message("Análisis Semántico Completado con Éxito")
         else:

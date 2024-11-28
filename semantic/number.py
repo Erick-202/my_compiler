@@ -94,6 +94,8 @@ class Numero:
         
 
     def processnumber(self,number):
+        if isinstance(number,int):
+            return number
         if isinstance(number.valor,int):
             return number.valor
         if isinstance(number.valor,float):

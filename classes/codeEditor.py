@@ -18,7 +18,7 @@ class SyntaxHighlighter(QSyntaxHighlighter):
         keyword_format.setFontWeight(QFont.Bold)
         
         # Palabras clave
-        keywords = ["int", "string", "boolean", "if", "else", "while", "for", "true", "false"]
+        keywords = ["int", "string", "boolean", "if", "else", "while", "for", "true", "false", "print"]
         self.highlighting_rules = [(QRegularExpression(r"\b" + keyword + r"\b"), keyword_format) for keyword in keywords]
         
         # Formato para literales de cadena
