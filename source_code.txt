@@ -1,5 +1,7 @@
-int x = 10; 
+int x = 50; 
 
+if (x>1){
+/*
+int y = 10;
 
-
-string y = "adasd";
+}

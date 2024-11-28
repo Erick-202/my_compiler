@@ -21,8 +21,8 @@ def process_errors(errores):
         {"code": 1016, "message": "El -- no puede llevar - concatenado"},
         {"code": 1017, "message": "El lenguaje solo soporta enteros, favor de solo concatenar números del 0-9"},
         {"code": 1018, "message": "El programa no debe acabar con una cadena abierta"},
+        {"code": 1019, "message": "El programa no debe acabar con un comentario abierto"},
     ]
-
     result = [
         {
             "code": error["code"],
@@ -50,22 +50,19 @@ def extract_error_lines(file_path, errores_descriptivos):
     with open(file_path, 'r') as file:
         # Leer todas las líneas del archivo
         lines = file.readlines()
-        total_lines = len(lines)
 
         for error in errores_descriptivos:
             line_number = error.get("line")
             col_number = error.get("col")
             message = error.get("message")
-
             # Validar que la línea existe en el archivo
             if 0 < line_number <= len(lines):
                 error_details.append({
                     "line": line_number,
                     "column": col_number,
-                    "content": lines[line_number - 1].rstrip() ,
                     "message": message
                 })
-
+    
     return error_details    
-
+ 
 

@@ -19,8 +19,8 @@ from classes.terminal import Terminal
 
 
 import lexico_errores.my_lex as my_lex 
-
 import syntax.my_syntax as my_syntax 
+import semantic.my_semantic as my_semantic
 
 
 
@@ -134,61 +134,73 @@ class IDE(QMainWindow):
     def run_lex(self):
 
         if self.state != 1 : 
-            self.change_button_color(self.semantic_button,self.danger)
-        
-        else: 
+            self.reset_IDE()
 
-            # Limpiar la terminal y la barra de herramientas antes de compilar
-            self.terminal.clear_terminal()
-            self.tool_bar.clear_errors()
+        # Limpiar la terminal y la barra de herramientas antes de compilar
+        self.terminal.clear_terminal()
+        self.tool_bar.clear_errors()
 
-            # Obtener el contenido del editor
-            src = self.editor.toPlainText()
+        self.errors = []
 
-            if len(src) == 0:
-                self.terminal.append_message("ERROR: No hay Tokens para Analizar")
+        # Obtener el contenido del editor
+        self.src = self.editor.toPlainText()
+
+        # Validar si el contenido está vacío (incluyendo solo saltos de línea o espacios)
+        if len(self.src.strip()) == 0:
+            self.terminal.append_message("ERROR: No hay Tokens para Analizar")
+            self.change_button_color(self.lex_button,self.danger)
+        else:
+
+            # Guardar el contenido en un archivo
+            try:
+                with open("source_code.txt", "w", encoding="utf-8") as file:
+                    file.write(self.src)
+            except Exception as e:
+                self.terminal.append_message(f"Error al guardar el archivo: {e}")
                 self.change_button_color(self.lex_button,self.danger)
-            else:
+                return
 
-                # Guardar el contenido en un archivo
-                try:
-                    with open("source_code.txt", "w", encoding="utf-8") as file:
-                        file.write(src)
-                except Exception as e:
-                    self.terminal.append_message(f"Error al guardar el archivo: {e}")
+            # Realizar el análisis léxico
+            try:
+                lex_result = my_lex.lex_analyze("source_code.txt")
+                self.tokens = lex_result[0]
+                self.errors = lex_result[1]
+
+                # Actualizar la tabla de tokens en el ToolBar
+                self.tool_bar.update_data(self.tokens)
+
+                # Actualizar la tabla de símbolos
+                self.symbol_table.update_symbols(self.tokens)
+
+                table_errors = self.symbol_table.get_errors()
+                if table_errors :
+                    #self.errors.extend(table_errors)
+                    self.terminal.append_message(table_errors[0])
+                    self.change_button_color(self.lex_button,self.danger)
+                    #print("TABLE ERRORS ",table_errors)
                     return
 
-                # Realizar el análisis léxico
-                try:
-                    lex_result = my_lex.lex_analyze("source_code.txt")
-                    self.tokens = lex_result[0]
-                    self.errors = lex_result[1]
+                # Mostrar errores en la terminal
+                if self.errors :
+                    self.terminal.append_message("Errores encontrados:")
+                    for error in self.errors:
+                        #print("ERROOOOOOOOOOOOOOOOOR")
+                        line = error.get("line", "?")
+                        message = error.get("message", "Error desconocido")
+                        self.terminal.append_message(f"Línea {line}: {message}")
+                        
+                    self.change_button_color(self.lex_button,self.danger)
+                    # Agregar errores a la pila en el ToolBar
+                    self.tool_bar.add_errors(self.errors)
+                else:
+                    self.terminal.append_message("Compilación exitosa: Sin errores.")
+                    self.change_button_color(self.lex_button,self.success)
+                    self.change_button_color(self.syntax_button,self.warning)
+                    self.state = 2
 
-                    # Actualizar la tabla de tokens en el ToolBar
-                    self.tool_bar.update_data(self.tokens)
-
-                    # Actualizar la tabla de símbolos
-                    self.symbol_table.update_symbols(self.tokens)
-
-                    # Mostrar errores en la terminal
-                    if self.errors:
-                        self.terminal.append_message("Errores encontrados:")
-                        for error in self.errors:
-                            line = error.get("line", "?")
-                            message = error.get("message", "Error desconocido")
-                            self.terminal.append_message(f"Línea {line}: {message}")
-                            self.change_button_color(self.lex_button,self.danger)
-
-                        # Agregar errores a la pila en el ToolBar
-                        self.tool_bar.add_errors(self.errors)
-                    else:
-                        self.terminal.append_message("Compilación exitosa: Sin errores.")
-                        self.change_button_color(self.lex_button,self.success)
-                        self.change_button_color(self.syntax_button,self.warning)
-                        self.state = 2
-
-                except Exception as e:
-                    self.terminal.append_message(f"Error durante el análisis léxico: {e}")
+            except Exception as e:
+                self.terminal.append_message(f"Error durante el análisis léxico: {e}")
+                self.change_button_color(self.lex_button,self.danger)
         
         
         
@@ -205,19 +217,18 @@ class IDE(QMainWindow):
             print("HACER SINTACTICO")
             #print(self.tokens)
             self.syntax = my_syntax.my_syntax(self.tokens)
-            syntax_res = self.syntax[0]
-            syntax_err = self.syntax[2]
             
+            syntax_err = self.syntax[1]
 
             if syntax_err:
                 self.tool_bar.add_errors(syntax_err)
-            
-
-            self.terminal.append_message(str(syntax_res))
-
-            self.change_button_color(self.syntax_button,self.success)
-            self.change_button_color(self.semantic_button,self.warning)
-            self.state = 3
+                self.terminal.append_message(syntax_err)
+                self.change_button_color(self.syntax_button, self.danger)
+                self.state = 2
+            else:
+                self.change_button_color(self.syntax_button,self.success)
+                self.change_button_color(self.semantic_button,self.warning)
+                self.state = 3
         else:
             #print("Primero tienes que hacer el Análisis Léxico")
             self.terminal.append_message("Primero tienes que hacer el Análisis Léxico")
@@ -226,14 +237,20 @@ class IDE(QMainWindow):
     def run_semantic(self):
         if self.state == 3:
             print("HACER SEMANTICO")
-            semantic_err = self.syntax[3]
+            syntax_three = self.syntax[0]
+            
+            self.semantic = my_semantic.my_semantic(syntax_three)
+
+            semantic_err = self.semantic[0]
+
             if semantic_err:
                 self.tool_bar.add_errors(semantic_err)
                 self.change_button_color(self.semantic_button,self.danger)
                 self.terminal.append_message(semantic_err)
+                return 
             else:
                 self.change_button_color(self.semantic_button,self.success)
-                self.terminal.append_message("Anális")
+                self.terminal.append_message("Análisis Semántico Completado con Éxito")
         else:
             self.terminal.append_message("Primero debes realizar el Análisis Sintáctico")
             #print("Primero debes realizar el Análisis Sintáctico")
@@ -246,10 +263,11 @@ class IDE(QMainWindow):
         self.change_button_color(self.semantic_button, self.off)
         self.terminal.clear_terminal()
         self.symbol_table.clear_table()
-        self.tokens = None 
-        self.errors = None
-        self.syntax = None
+        self.tokens = [] 
+        self.errors = []
+        self.syntax = []
         self.tool_bar.clear_errors()
+        self.src = ""
  
 
 def main():

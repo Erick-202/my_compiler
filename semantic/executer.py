@@ -1,10 +1,12 @@
-from syntax.number import Numero
-from syntax.symbolTable import SymbolTable
+from semantic.number import Numero
+from semantic.symbolTable import SymbolTable
 import sys
+
 class Executer:
     def __init__(self):
         self.executer_errors = []
         self.symboltable = SymbolTable()
+        self.exits = []
 
     def operation(self,nodo):
         operacion =  type(nodo).__name__
@@ -85,3 +87,35 @@ class Executer:
             valor = nodo.valor
 
         self.symboltable.set(tipo,nombre,valor)
+    
+    def NodoSi(self, nodo):
+        
+        for condition , expr in nodo.cases:
+            condition_value = self.operation(condition)
+            if self.executer_errors:
+                return condition
+            
+            if condition_value.is_true():
+
+                print ("type of expr is: ", type(expr), len(expr))
+                for e in expr:
+                    print ("type of expr is: ", type(e.nodo))
+                    expr_value = self.operation(e.nodo)
+                if self.executer_errors:
+                    return expr_value
+                return 1
+            
+        if nodo.else_cases:
+#            else_value = self.operation(nodo.else_cases)
+#            if self.executer_errors:
+ #               return nodo.else_cases
+  #          return else_value
+            for  expr in nodo.else_cases:
+                for e in expr:
+                    print ("type of expr is: ", type(e.nodo))
+                    expr_value = self.operation(e.nodo)
+                if self.executer_errors:
+                    return expr_value
+                return expr_value
+        return
+

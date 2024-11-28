@@ -1,15 +1,15 @@
 import pandas as pd
 
+#POSICION 
+#global line, col, stack_col, pila_cadena
 
 
 def lexical_analysis(archivo):
     global line, col, stack_col, pila_cadena
 
-    # Reiniciar las variables globales
     line = 1
     col = 0
-    stack_col = []
-    pila_cadena = []
+    stack_col =[]
 
     # read by default 1st sheet of an excel file
     matrix = pd.read_excel('lexico_errores/matriz.xlsx')
@@ -30,39 +30,41 @@ def lexical_analysis(archivo):
         # Crear una lista para almacenar los caracteres
         token = ""
         row = 0     #Estado = 0
-        
         while True:
             # Leer un solo carácter
             char = file.read(1)
-            
             # Si no hay más caracteres, salir del bucle
             if not char:
                 #Verifica que haya un token al final del archivo
                 #Si no es Entero
                 if isinstance(matrix["jmp"][row], int):
                     error = matrix["jmp"][row]
-                    if (matrix["jmp"][row] == 68):
+                    #print (error)
+                    if (error == 68):
                         error = 1018
+                        #print (error)
+                    if (error == 66 or error == 67):
+                        error = 1019
+                        #print (error)
                     if(error>999):
                         col_pos = col - len(token)+1
                         row_pos = line
                         if(pila_comillas):
                             col_pos = pila_cadena[0][1]
                             row_pos = pila_cadena[0][0]
-
+                        if (error == 1019): 
+                            col_pos = col +1
                         get_errors(stack_error,error, col_pos,row_pos,"-f")
+                        #print(stack_error)
                     
-
                 else:
                     col_pos = col - len(token)
                     row_pos = line
                     if(not pila_comillas and pila_cadena):
                         col_pos = pila_cadena[0][1]-1
                         row_pos = pila_cadena[0][0]
-                    
-
-
-                    result.append([token,matrix["jmp"][row],row_pos,col_pos+1])
+                    result.append([token,matrix["jmp"][row],row_pos,col_pos+1])   
+                result.append(["end","end",row_pos,col_pos])
                 break
             #procesa el caracter para ser entendido por la matriz
             column = procesar_char(char)
@@ -112,7 +114,6 @@ def lexical_analysis(archivo):
                 else:
                     col_pos = col - len(token)
                     row_pos = line
-
                 if(not pila_comillas and pila_cadena):
                     col_pos = pila_cadena[0][1]
                     row_pos = pila_cadena[0][0]
@@ -123,7 +124,6 @@ def lexical_analysis(archivo):
                 token = ""
                 row = 0
                 if char not in spaces :
-                    
                     row = matrix[column][row]
                     if char == "\"":
                         if not pila_comillas:
@@ -144,24 +144,17 @@ def lexical_analysis(archivo):
                         result.append([token,matrix[column][row],line,col_pos+1])
                         token = ""
                         row = 0
-
-            #col = col + 1  #Esto da ['int', '-p', 'int', 1, 4] la posicion final pero quiero la inicial 
-            
-
     return result,stack_error
 
 #Determina la columna del autómata y actualiza posición global.
 def procesar_char(char):
     global line, col
     col += 1  # Incrementar columna por carácter leído
-
     if char.isdigit():
         column = int(char)
-        #print("NOT DIGIT - col:",col,' - row:',line,' - char: ',char)
     else:
         column = str(char)
-        #print("NOT DIGIT - col:",col,' - row:',line,' - char: ',char)
-
+        
 
     if char == "\n":
         column = "jmp"

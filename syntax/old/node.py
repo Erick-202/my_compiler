@@ -53,8 +53,3 @@ class NodoAsignacion:
 
     def __repr__(self):
         return f'type = {self.type},{self.nombre} = {self.valor}'
-    
-class NodoSi:
-     def __init__ (self, cases,else_cases):
-        self.cases = cases
-        self.else_cases = else_cases

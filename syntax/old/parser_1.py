@@ -1,6 +1,5 @@
-from syntax.node import NodoNumero,NodoOperacion,NodoNegativo,NodoAsignacion,NodoSi
+from syntax.node import NodoNumero,NodoOperacion,NodoNegativo,NodoAsignacion
 from syntax.three_results import ResultsThree
-import sys
 
 class Parser:
     def __init__(self,tokens):
@@ -9,13 +8,7 @@ class Parser:
         self.advance()
         self.errors = []
         self.asign = []
-        self.result = []
         
-    def statements(self):
-        statements =[]
-
-        while self.current_token[1]== "semicolon":
-            self.advance()
 
     def advance(self):
         self.token_index +=1
@@ -25,64 +18,12 @@ class Parser:
     
 
     def parse(self):
-        res = self.seleccion()
-        if not self.errors and self.current_token[1] != "end":
+        res = self.expresion()
+        #not self.errors
+        if self.errors and self.current_token[1] != "end":
             self.errors.append({"code": "se esperaba un operador aritmetico", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
         return res,self.errors
     
-    def seleccion(self):
-        result = ResultsThree
-        resulat = []
-        while self.current_token[1] != "end":
-            while self.current_token[1]== "semicolon":
-                self.advance()
-            if self.errors:
-                return self.result
-            if self.current_token[1]== "int":
-                self.result.append(self.asignacion())
-                if self.errors:
-                    return self.asignacion()
-                
-            elif self.current_token[1]== "if":
-                self.result.append(self.if_expr())
-                if self.errors:
-                    return self.if_expr()
-            else :
-                if self.errors:
-                    return resulat
-                self.errors.append({"code": "Error de sintaxis", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-                return result
-            
-                
-            
-        return resulat
-    
-    def seleccion_if(self):
-        result = ResultsThree
-        resultado = []
-        while self.current_token[1] != "brace_r" and not self.errors:
-            while self.current_token[1]== "semicolon":
-                self.advance()
-            if self.errors:
-                return self.result
-            if self.current_token[1]== "int":
-                resultado.append((self.asignacion()))
-                if self.errors:
-                    return self.asignacion()
-                
-            elif self.current_token[1]== "if":
-                resultado.append((self.if_expr()))
-                if self.errors:
-                    return self.if_expr()
-            else :
-                if self.errors:
-                    return result
-                self.errors.append({"code": "declaracion invalida", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-                return result
-            
-        return resultado
-        
-
     def factor(self):
         resultado = ResultsThree()
         token = self.current_token
@@ -123,8 +64,7 @@ class Parser:
     def expresion(self):
         nodo = self.operacion_algebraica(self.comparacion,("or","and"))
         if self.errors:
-            #self.errors.append({"code": "se esperaba un '-' o un '('", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-            self.errors.append({"code": "se esperaba una Expresión" , "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
+             self.errors.append({"code": "se esperaba un '-' o un '('", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
         return nodo
     
     def comparacion(self):
@@ -172,15 +112,12 @@ class Parser:
                 return resultado
 
         # Si no empieza con `int`, es un error
-        """
         self.errors.append({
             "code": "Se esperaba 'int'",
             "line": self.current_token[2],
             "col": self.current_token[3],
             "place": "-s"
         })
-        """
-        
         return resultado
     
 
@@ -233,70 +170,20 @@ class Parser:
         })
         return resultado
     
-    def asignacion_if(self):
-        if self.current_token[1] == "int":
-            if_expr = self.if_expr()
-            if self.errors:
-                return if_expr
-            return if_expr
-    
 
-    def if_expr(self):
-        resultado = ResultsThree()
-        cases =[]
-        else_cases = []
-
-        if self.current_token[1] != "if":
-             return self.current_token
-        
-        self.advance()
-
-        if self.current_token[1] != "paren_l":
-            self.errors.append({"code": "se esperaba un '('", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-            return self.current_token
-        
-        self.advance()
-        condition = resultado.registro(self.expresion())
-        if self.errors:
-            return condition
-        
-        if self.current_token[1] != "paren_r":
-            self.errors.append({"code": "se esperaba un ')'", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-            return self.current_token
-
-        self.advance()        
-
-        if self.current_token[1] != "brace_l":
-            self.errors.append({"code": "se esperaba un '{'", "line": self.current_token[2], "col": self.current_token[3], "place":"-if"})
-            return self.current_token
-
-        self.advance()
-        expr = resultado.registro(self.seleccion_if())  #cambiar luego por el que llama fuerte
-        if self.errors:
-            return condition
-        
-        cases.append((condition,expr))
-        
-        if self.current_token[1] != "brace_r":
-            self.errors.append({"code": "se esperaba un '}'", "line": self.current_token[2], "col": self.current_token[3], "place":"-s"})
-            return self.current_token
-        self.advance()   
-        if self.current_token[1] == "else":
-            self.advance() 
-            if self.current_token[1] != "brace_l":
-                self.errors.append({"code": "se esperaba un '{'", "line": self.current_token[2], "col": self.current_token[3], "place":"-else"})
-                return self.current_token
-            self.advance() 
-            expr = resultado.registro(self.seleccion_if()) #cambiar luego por el que llama fuerte
-            if self.errors:
-                return expr
-            else_cases.append(expr)
-
-            if self.current_token[1] != "brace_r":
-                self.errors.append({"code": "se esperaba un '}'", "line": self.current_token[2], "col": self.current_token[3], "place":"-else"})
-                return self.current_token
-            self.advance() 
-
-        resultado = resultado.exito(NodoSi(cases,else_cases))
-        return resultado
-
+"""
+            if self.current_token[1] == "id":
+                self.advance()
+                name = self.current_token
+                if self.current_token[1] == "asign":
+                    self.advance()
+                    expr = self.expresion()
+                
+                if self.current_token[1] == "comma":
+                    self.advance()
+                    self.asign.append("")
+                    expr = self.expresion()
+                    if self.errors:
+                        return expr
+                    NodoVariable(name, expr)
+                    """

@@ -6,6 +6,8 @@ class SymbolTable(QWidget):
         super().__init__()
         self.symbols = {}  # Diccionario para almacenar símbolos
         self.initUI()
+        self.errors = []   # Lista de errores
+      
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -26,8 +28,12 @@ class SymbolTable(QWidget):
     def update_symbols(self, tokens):
         self.table.setRowCount(0)  # Borrar datos anteriores
 
+        self.errors = [] # reiniciar errores
+
         # Diccionario para rastrear variables declaradas
         declared_symbols = {}
+
+        
 
         current_type = None
         current_identifier = None
@@ -35,7 +41,8 @@ class SymbolTable(QWidget):
 
         for token in tokens:
             if len(token) != 4:
-                print(f"Token inválido: {token}")
+                #print(f"Token inválido: {token}")
+                self.errors.append(f"Token inválido: {token}")
                 continue
 
             token_value, token_type, line, column = token
@@ -52,7 +59,8 @@ class SymbolTable(QWidget):
                     current_identifier = token_value
                 else:
                     # Error: Variable no declarada
-                    print(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
+                    #print(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
+                    self.errors.append(f"Error: La variable '{token_value}' no ha sido declarada antes de usarse. Línea: {line}")
                     current_identifier = None
 
             # Detectar asignación
@@ -89,6 +97,13 @@ class SymbolTable(QWidget):
 
         # Actualización final de la tabla visual
         self.update_table(declared_symbols)
+
+    def get_errors(self):
+        if not self.errors:
+            print("No hay errores")
+            return []
+        print(self.errors)
+        return self.errors
 
     def update_table(self, declared_symbols):
         """Actualiza la tabla visual con el contenido del diccionario de símbolos."""

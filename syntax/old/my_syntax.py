@@ -1,5 +1,5 @@
 from syntax.parser_1 import Parser  
-#from syntax.executer import Executer
+from syntax.executer import Executer
  
 #file = "test/010_goodboy.txt"
 
@@ -16,15 +16,8 @@ def my_syntax(tokens):
     #Obtener el árbol
     three,syntax_errors = parser.parse()
     #print("RESULTADO PARSER: "+ str(three))
-    message = None
     if syntax_errors:
-        #print (syntax_errors)
-        for error in syntax_errors:
-            message = (
-            f"Error: {error['code']} en la Línea: {error['line']}, Columna: {error['col']}."
-        )
-        return three, message
-
+        print (syntax_errors)
     ################################################################3
     """
     else:
@@ -40,6 +33,6 @@ def my_syntax(tokens):
     """
     
 
-    return three, message
+    return three, syntax_errors
 
 
